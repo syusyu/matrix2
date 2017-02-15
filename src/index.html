@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Design trial</title>
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="css/font-awesome.css"/>
+    <link rel="stylesheet" href="css/style.css"/>
+    <link rel="stylesheet" href="css/spa_page_manager.css"/>
+    <link rel="stylesheet" href="css/matrix2.css"/>
+</head>
+<body>
+
+<div class="header">
+    <div class="container">
+        <h1><a href=""><img src="img/icon.png" class="logo">Matrix conditions</a></h1>
+    </div><!-- container -->
+</div>
+
+<div id="container" class="container">
+    <div class="row">
+
+        <div id="grid-sub" class="col-sm-3">
+            <div class="submenu  panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">CATEGORIES</h3>
+                </div>
+                <div class="panel-body">
+                    <ul class="nav nav-pills nav-stacked">
+                        <li><a href="">Blog</a></li>
+                        <li><a href="">Diary</a></li>
+                    </ul>
+                </div>
+            </div>
+            <p>
+                <a href="#" id="grid-slider" class="grid-slider-to-hide">&nbsp;</a>
+            </p>
+        </div><!-- col -->
+
+
+        <div id="grid-main" class="col-sm-9">
+
+            <div id="top-container" class="container">
+                <!--<p>-->
+                <!--Adventure 1011: Stand-Up Paddle Boarding-->
+                <!--Posted by Intelligent Travel in Beyond the Guidebook on July 31, 2014-->
+                <!--(2)1-->
+                <!--Share on emailMore »-->
+
+                <!--A stand-up paddle boarder glides along the waters of Hawaii. (Photograph by Jayms Ramirez)-->
+                <!--The fastest-growing water sport in the world, stand-up paddle boarding (SUP) was born in the-->
+                <!--Hawaiian Islands, and with calm jungle rivers and 50 miles of beaches, Kauai is one of the best-->
+                <!--places for the sport.-->
+
+                <!--“SUP is the marriage of the two most important water sports in Hawaiian culture: surfing and-->
+                <!--outrigger paddling,” says Laird Hamilton, world-renowned big-wave surfer and master of crossover-->
+                <!--board sports.-->
+                <!--</p>-->
+
+                <div class="spa-page nowloading visible">
+                    <img src="img/now_loading_plan_change.gif" alt="Now loading"/>
+                    <p id="plan-change-nowloading-text">Now loading</p>
+                </div>
+
+                <div class="spa-page main">
+                    <div>
+                        <ul class="factors" data-bind-loop="DATA_FACTORS.factors">
+                            <li class="factor">
+                                <div class="factor-box">
+                                    <div class="factor-title">
+                                        <div class="factor-title-close" data-action-click-id="remove-factor"
+                                             data-bind-id="DATA_FACTORS.factors.id" data-action-click-params="id">×
+                                        </div>
+                                    </div>
+                                    <div class="factor-body">
+                                        <h4 data-bind-text="DATA_FACTORS.factors.name"></h4>
+                                        <ul data-bind-loop="DATA_FACTORS.factors.options">
+                                            <li data-bind-text="DATA_FACTORS.factors.options.name"></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <div>
+                            <input type="text" id="factor-name"/>
+                            <i class="fa fa-check-square fa-2x factor-check-btn" data-action-force-click-id="add-factor"></i>
+                            <br/>
+
+                            <div data-bind-loop="DATA_INPUT_FACTOR_OPTIONS.input_factor_options">
+                                <input type="text" class="input_factor_option"
+                                       data-bind-id="DATA_INPUT_FACTOR_OPTIONS.input_factor_options.id"
+                                       data-bind-affix-id="factor-input-option-#"/>
+                                <i class="fa fa-times fa-1x factor-check-btn"
+                                   data-bind-id="DATA_INPUT_FACTOR_OPTIONS.input_factor_options.id"
+                                   data-bind-affix-id="factor-input-option-remove-#"
+                                   data-action-click-id="remove-factor-option" data-action-click-params="id"></i>
+                                <br/>
+                            </div>
+                            <i class="fa fa-plus fa-2x factor-check-btn" data-action-force-click-id="add-factor-option"></i>
+                            <br/>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- col -->
+
+    </div><!-- row -->
+</div><!-- container -->
+
+<div class="footer">
+    <p>Copy right &copy; EC development team</p>
+</div><!-- container -->
+
+
+<script src="js/jquery/jquery.js"></script>
+<script src="js/jquery/jquery.uriAnchor.js"></script>
+<script src="js/spa_page_manager.js"></script>
+<script src="js/matrix2.js"></script>
+<script src="js/bootstrap/bootstrap.min.js"></script>
+<script src="js/style.js"></script>
+<script>
+    $(function () {
+        matrix2.initModule($('#top-container'), true);
+        style.initModule($('#top-container'));
+    });
+</script>
+
+</body>
+</html>

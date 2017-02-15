@@ -1,0 +1,30 @@
+ul.factors {
+    display: flex;
+}
+li.factor {
+    list-style: none;
+    padding: 0px 3px 0px 0px;
+}
+div.factor-box {
+    padding: 0px 3px 3px 3px;
+    background-color: lightsteelblue;
+    color: navy;
+}
+div.factor-title {
+    display: flex;
+    justify-content: flex-end;
+}
+div.factor-title-close {
+    color: #FFFFFF;
+    cursor: pointer;
+}
+.factor-check-btn {
+    cursor: pointer;
+}
+.input_factor_option {
+    width: 120px;
+}
+#factor-input-option-remove-1 {
+    color: white;
+    cursor: default;
+}
