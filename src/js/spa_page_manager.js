@@ -310,11 +310,15 @@ spa_page_transition.func = (function () {
                 this_obj = this;
 
             spa_page_data.serverAccessor(decide_path(this_obj), decide_params(this_obj)).then(function (data) {
-                    this_obj.exec_main_func(this_obj, anchor_map, data).then(function (data_main_func) {
-                        d.resolve(data_main_func);
-                    }, function (data_main_func) {
-                        d.reject(data_main_func);
-                    });
+                    if (data.server_error_status) {
+                        d.reject({err_mes: 'serverAccessor error. status:' + data.server_error_status});
+                    } else {
+                        this_obj.exec_main_func(this_obj, anchor_map, data).then(function (data_main_func) {
+                            d.resolve(data_main_func);
+                        }, function (data_main_func) {
+                            d.reject(data_main_func);
+                        });
+                    }
                 }, function (data) {
                     spa_page_transition.getLogger().error('ajaxFunc.serverAccess failed. data', data);
                     d.reject(data);
@@ -435,7 +439,7 @@ spa_page_transition.shell = (function () {
                 }
                 result += val ? ('"' + key + '":"' + val + '"') : '';
                 result += (result && idx < keys.length - 1 ? ',' : '');
-            })
+            });
             return JSON.parse('{' + result + '}');
         };
 
@@ -542,7 +546,7 @@ spa_page_transition.shell = (function () {
         var
             $show_target_page = $('.' + pageCls),
             $current_page = $(".spa-page:visible"),
-            all_matched = spa_page_util.exists($current_page) ? true : false;
+            all_matched = spa_page_util.exists($current_page);
 
         $current_page.each(function (idx, el) {
             all_matched &= $(el).hasClass(pageCls);
@@ -621,6 +625,7 @@ spa_page_transition.data_bind = (function () {
     var
         ENUM_TOGGLE_ACTION_TYPE = {ADD: 'ADD', REMOVE: 'REMOVE', TOGGLE: 'TOGGLE'},
         BIND_ATTR_REPLACED_KEY = 'data-bind-replaced-key',
+        BIND_ATTR_IS_CLONED = 'data-bind-is-cloned',
         evt_data_bind_view,
         run;
 
@@ -767,7 +772,8 @@ spa_page_transition.data_bind = (function () {
             } else if (attr === 'val') {
                 $el.val(val);
             } else if (attr === 'val1' || attr === 'val2' || attr === 'val3') {
-                prev_val = $el.attr('value');
+                prev_val = $el.val();
+                prev_val = prev_val && prev_val === $el.text() ? '' : prev_val;
                 if (prev_val) {
                     $el.val(prev_val + val_separator + val);
                 } else {
@@ -809,7 +815,7 @@ spa_page_transition.data_bind = (function () {
                 cloned_children,
                 loop_prop_key = $(el).attr('data-bind-loop');
 
-            if (loop_prop_key && loop_prop_key.indexOf(key) === 0) {
+            if (loop_prop_key && loop_prop_key.indexOf(key + '.') === 0) {
                 cloned_children = _clone_loop_children(el, loop_prop_key, data);
                 $.each(cloned_children, function (idx, el_cloned_child) {
                     _do_find_loop_element(el_cloned_child, data, key);
@@ -846,6 +852,7 @@ spa_page_transition.data_bind = (function () {
                 $(el).append($el_child);
             });
             $.each(clone_target_elements, function (idx, $el_child) {
+                $el_child.attr(BIND_ATTR_IS_CLONED, 'true');
                 $el_child.hide();
             });
 
@@ -854,14 +861,22 @@ spa_page_transition.data_bind = (function () {
 
         _replace_cloned_element_attr = function ($el, loop_prop_key, i) {
             $el.attr(BIND_ATTR_REPLACED_KEY, loop_prop_key);
-            _each_attr_type(function (bind_attr_type, attr_type) {
-                var
-                    bind_attr = $el.attr(bind_attr_type);
-
+            _each_attr_type(function (bind_attr_type) {
+                var bind_attr = $el.attr(bind_attr_type);
                 if (bind_attr) {
                     $el.attr(bind_attr_type, bind_attr.replace(loop_prop_key, loop_prop_key + '$' + i));
                 }
             });
+            $(all_show_cond_selectors).each(function (idx_any, el_any) {
+                $.each(SHOW_COND_SELECTORS, function (idx_selector, selector) {
+                    var bind_attr = $el.attr(selector);
+                    if (bind_attr) {
+                        $el.attr(selector, bind_attr.replace(loop_prop_key, loop_prop_key + '$' + i));
+                    }
+                });
+            });
+
+
         };
 
         /**
@@ -921,10 +936,9 @@ spa_page_transition.data_bind = (function () {
 
             _init_bind_prop_map(key, data);
             all_props = _get_all_prop_map();
-            bind_attr_type_selectors = _each_attr_type_selectors();
-
             _create_loop_element($('body'), data, key);
 
+            bind_attr_type_selectors = _each_attr_type_selectors();
             $(bind_attr_type_selectors).each(function (idx_bind, obj) {
                 var
                     el_prop_key,
@@ -937,6 +951,7 @@ spa_page_transition.data_bind = (function () {
                     }
                     if (all_props[el_prop_key]) {
                         _settle_bind_val($this, attr, data, el_prop_key);
+                        return false;
                     }
                 });
             });
@@ -950,11 +965,12 @@ spa_page_transition.data_bind = (function () {
                     if (attr_val) {
                         matched_show_cond = show_condition.findShowCond(selector).prepare(data, attr_val);
                         if (matched_show_cond.is_target(key)) {
-                            if (matched_show_cond.visible()) {
+                            if (matched_show_cond.visible() && $(el).attr(BIND_ATTR_IS_CLONED) !== 'true') {
                                 $(el).show();
                             } else {
                                 $(el).hide();
                             }
+                            return false;
                         }
                     }
                 });
@@ -976,7 +992,7 @@ spa_page_transition.data_bind = (function () {
                 },
                 prepare: function (data, attr) {
                     var
-                        entity_prop, _prop_tree, entity_prop_cond;
+                        entity_props, _entity_prop, entity_prop_cond;
                     this.prepared = true;
                     if (!data) {
                         console.warn('###invisible');
@@ -984,19 +1000,20 @@ spa_page_transition.data_bind = (function () {
                     }
 
                     entity_prop_cond = attr.split('=');
-                    entity_prop = entity_prop_cond[0].split('\.');
-                    if (!entity_prop) {
-                        console.warn('###invisible entity_prop');
+                    entity_props = entity_prop_cond[0].split('\.');
+                    if (!entity_props) {
+                        console.warn('###invisible entity_props');
                         return;
                     }
-                    this.entity = entity_prop[0];
-                    _prop_tree = entity_prop[1];
-                    $.each(entity_prop, function (idx, el) {
-                        if (idx > 1) {
-                            _prop_tree += '.' + el;
+                    this.entity = entity_props[0];
+                    _entity_prop = '';
+                    $.each(entity_props, function (idx, el) {
+                        if (idx > 0) {
+                            _entity_prop += '.';
                         }
+                        _entity_prop += el;
                     });
-                    this.prop_tree = _prop_tree;
+                    this.entity_prop = _entity_prop;
                     if (entity_prop_cond.length > 1) {
                         this.cond = entity_prop_cond[1];
                     }
@@ -1043,7 +1060,7 @@ spa_page_transition.data_bind = (function () {
             createShowCondEq = function () {
                 var res = Object.create(showCondProto);
                 res.matches = function (data) {
-                    var val = data[this.prop_tree];
+                    var val = _get_bind_val(data, this.entity_prop);
                     if (!val) {
                         return false;
                     } else if (this.cond && this.cond !== val) {
@@ -1058,7 +1075,7 @@ spa_page_transition.data_bind = (function () {
             createShowCondEmpty = function () {
                 var res = Object.create(showCondProto);
                 res.matches = function (data) {
-                    var val = data[this.prop_tree];
+                    var val = _get_bind_val(data, this.entity_prop);
                     if (!val) {
                         return true;
                     } else if (typeof val === 'object') {
