@@ -625,7 +625,7 @@ spa_page_transition.data_bind = (function () {
     var
         ENUM_TOGGLE_ACTION_TYPE = {ADD: 'ADD', REMOVE: 'REMOVE', TOGGLE: 'TOGGLE'},
         BIND_ATTR_REPLACED_KEY = 'data-bind-replaced-key',
-        BIND_ATTR_IS_CLONED = 'data-bind-is-cloned',
+        BIND_ATTR_CLONE_TARGET = 'data-bind-clone-target',
         evt_data_bind_view,
         run;
 
@@ -636,7 +636,8 @@ spa_page_transition.data_bind = (function () {
             _settle_bind_val, _extract_val, _get_bind_val, _format_bind_val, _affix_bind_val,
             _each_attr_type, _each_attr_type_selectors,
 
-            _create_loop_element, _do_find_loop_element, _clone_loop_children, _replace_cloned_element_attr,
+            _create_loop_element, _do_find_loop_element, _clone_loop_children,
+            _replace_cloned_element_attr, _replace_cloned_element_attr_condition,
 
             get_toggle_class_list,
             trigger, show_condition,
@@ -839,20 +840,27 @@ spa_page_transition.data_bind = (function () {
                 $(el).children().each(function (idx, el_child) {
                     $el_cloned = $(el_child).clone(true);
                     _replace_cloned_element_attr($el_cloned, loop_prop_key, i);
+                    _replace_cloned_element_attr_condition($el_cloned, loop_prop_key, i);
                     $el_cloned.find(bind_attr_type_selectors).each(function (idx, el_cloned_child) {
                         _replace_cloned_element_attr($(el_cloned_child), loop_prop_key, i);
+                    });
+                    $el_cloned.find(all_show_cond_selectors).each(function (idx, el_cloned_child) {
+                        _replace_cloned_element_attr_condition($(el_cloned_child), loop_prop_key, i);
                     });
                     cloned_elements.push($el_cloned);
                     clone_target_elements.push($(el_child));
                 });
             }
 
-            $.each(cloned_elements, function (idx, $el_child) {
-                $($el_child).show();
-                $(el).append($el_child);
+            $.each(cloned_elements, function (idx, el_child) {
+                $(el_child).show();
+                $(el).append(el_child);
             });
             $.each(clone_target_elements, function (idx, $el_child) {
-                $el_child.attr(BIND_ATTR_IS_CLONED, 'true');
+                $el_child.attr(BIND_ATTR_CLONE_TARGET, 'TRUE');
+                $el_child.children().each(function (idx, el_grandchild) {
+                    $(el_grandchild).attr(BIND_ATTR_CLONE_TARGET, 'TRUE');
+                });
                 $el_child.hide();
             });
 
@@ -860,23 +868,34 @@ spa_page_transition.data_bind = (function () {
         };
 
         _replace_cloned_element_attr = function ($el, loop_prop_key, i) {
+
             $el.attr(BIND_ATTR_REPLACED_KEY, loop_prop_key);
+
             _each_attr_type(function (bind_attr_type) {
                 var bind_attr = $el.attr(bind_attr_type);
                 if (bind_attr) {
                     $el.attr(bind_attr_type, bind_attr.replace(loop_prop_key, loop_prop_key + '$' + i));
+                    return false;
                 }
             });
+        };
+
+        _replace_cloned_element_attr_condition = function ($el, loop_prop_key, i) {
+
+            $el.attr(BIND_ATTR_REPLACED_KEY, loop_prop_key);
+
             $(all_show_cond_selectors).each(function (idx_any, el_any) {
                 $.each(SHOW_COND_SELECTORS, function (idx_selector, selector) {
                     var bind_attr = $el.attr(selector);
                     if (bind_attr) {
+                        if (spa_page_util.contains(bind_attr, loop_prop_key + '$' + i)) {
+                            return true;
+                        }
                         $el.attr(selector, bind_attr.replace(loop_prop_key, loop_prop_key + '$' + i));
+                        return false;
                     }
                 });
             });
-
-
         };
 
         /**
@@ -964,8 +983,9 @@ spa_page_transition.data_bind = (function () {
 
                     if (attr_val) {
                         matched_show_cond = show_condition.findShowCond(selector).prepare(data, attr_val);
-                        if (matched_show_cond.is_target(key)) {
-                            if (matched_show_cond.visible() && $(el).attr(BIND_ATTR_IS_CLONED) !== 'true') {
+                        if (matched_show_cond.is_target(key) && $(el).attr(BIND_ATTR_CLONE_TARGET) !== 'TRUE') {
+                            spa_page_transition.getLogger().debug('#trigger.attr_val', attr_val, 'selector', selector);
+                            if (matched_show_cond.visible()) {
                                 $(el).show();
                             } else {
                                 $(el).hide();
@@ -1060,6 +1080,7 @@ spa_page_transition.data_bind = (function () {
             createShowCondEq = function () {
                 var res = Object.create(showCondProto);
                 res.matches = function (data) {
+                    spa_page_transition.getLogger().debug('### eq ### entity_prop', this.entity_prop);
                     var val = _get_bind_val(data, this.entity_prop);
                     if (!val) {
                         return false;
@@ -1246,6 +1267,10 @@ var spa_page_util = (function () {
         startsWith = function (str, prefix) {
             return str.indexOf(prefix) === 0;
         },
+        endsWith = function (str, suffix) {
+            var sub = str.length - suffix.length;
+            return (sub >= 0) && (str.lastIndexOf(suffix) === sub);
+        },
         contains = function (str, target) {
             return str.indexOf(target) != -1;
         };
@@ -1255,6 +1280,7 @@ var spa_page_util = (function () {
         isEmpty: isEmpty,
         isNotEmpty: isNotEmpty,
         startsWith: startsWith,
+        endsWith: endsWith,
         contains: contains,
     }
 })();

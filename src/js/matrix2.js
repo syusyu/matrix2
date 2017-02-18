@@ -35,10 +35,11 @@ var matrix2 = (function () {
             }),
 
             initializationFunc = spa_page_transition.createAjaxFunc(PATH_INIT, null, function (observer, anchor_map, data) {
-                getLogger().debug('initial data loaded! data', data);
+                // getLogger().debug('initial data loaded! data', data);
                 matrix2.model.prepare(data);
                 observer.trigger('DATA_FACTORS', matrix2.model.get_factors());
                 observer.trigger('DATA_INPUT_FACTOR_OPTIONS', matrix2.model.get_input_factor_options());
+                observer.trigger('EXCLUDE', matrix2.model.get_exclude());
             });
 
 
@@ -66,12 +67,14 @@ matrix2.model = (function () {
         factors, get_factors, add_factor, remove_factor,
         input_factor_options, get_input_factor_options, add_input_factor_option, remove_input_factor_option,
         input_factor_options_of_first, init_input_factor_options,
+        _exclude_list, get_exclude,
         prepare;
 
     prepare = function (data) {
         factors = data.factors;
         input_factor_options = data.input_factor_options;
         input_factor_options_of_first = data.input_factor_options;
+        _exclude_list = data.exclude_list;
     };
 
     //factors
@@ -116,6 +119,10 @@ matrix2.model = (function () {
         return get_input_factor_options();
     };
 
+    get_exclude = function () {
+        return {'exclude_list': _exclude_list};
+    };
+
     return {
         prepare: prepare,
         get_factors: get_factors,
@@ -125,6 +132,7 @@ matrix2.model = (function () {
         add_input_factor_option: add_input_factor_option,
         remove_input_factor_option: remove_input_factor_option,
         init_input_factor_options: init_input_factor_options,
+        get_exclude: get_exclude,
     }
 
 })();
