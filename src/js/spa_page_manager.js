@@ -672,6 +672,10 @@ spa_page_transition.data_bind = (function () {
             if (!(data instanceof Object)) {
                 throw new Error('data should be a map');
             }
+            if (spa_page_util.isEmpty(data)) {
+                _bind_prop_map[whole_key] = {};
+                return;
+            }
 
             $.each(data, function (data_key, data_val) {
                 var new_key = whole_key + "." + data_key;
@@ -1035,6 +1039,10 @@ spa_page_transition.data_bind = (function () {
                     return this;
                 },
                 is_target: function (key) {
+                    if (spa_page_util.contains(this.entity_prop, 'selected_option')) {
+                        spa_page_transition.getLogger().debug('####entity_prop', this.entity_prop,
+                            'prop_map', _get_all_prop_map());
+                    }
                     if (this.entity && key !== this.entity) {
                         return false;
                     }
@@ -1091,6 +1099,7 @@ spa_page_transition.data_bind = (function () {
             createShowCondEmpty = function () {
                 var res = Object.create(showCondProto);
                 res.matches = function () {
+                    spa_page_transition.getLogger().debug('entity_prop', this.entity_prop, 'val', this.val, 'data', this.data);
                     if (!this.val) {
                         return true;
                     } else if (typeof this.val === 'object') {

@@ -88,17 +88,27 @@
 
                             <div data-bind-loop="EXCLUSION.exclude_list.pairs">
 
-                                <i class="fa fa-times fa-1x" data-bind-show-if-not-eq="EXCLUSION.exclude_list.pairs.id=1"></i>
+                                <i class="fa fa-times fa-1x"
+                                   data-bind-show-if-not-eq="EXCLUSION.exclude_list.pairs.id=1"></i>
 
+                                <!-- Factor -->
                                 <select data-bind-loop="FACTOR.factors">
-                                    <option data-bind-text="FACTOR.factors.name"></option>
+                                    <option data-bind-text="FACTOR.factors.name"
+                                            data-bind-selected="EXCLUSION.exclude_list.pairs.selected"></option>
                                 </select>
 
-                                <select data-bind-loop="FACTOR.factors">
+                                <!-- Option -->
+                                <select data-bind-show-if-not-empty="EXCLUSION.exclude_list.pairs.selected_factor"
+                                        data-bind-loop="EXCLUSION.exclude_list.pairs.selected_factor.options">
+                                    <option data-bind-text="EXCLUSION.exclude_list.pairs.selected_factor.options.name"
+                                            data-bind-selected="EXCLUSION.exclude_list.pairs.selected_factor.options.selected"></option>
+                                </select>
+                                <select data-bind-show-if-empty="EXCLUSION.exclude_list.pairs.selected_factor">
                                     <option></option>
                                 </select>
 
-                                <i class="fa fa-minus-circle fa-1x" data-bind-show-if-not-eq="EXCLUSION.exclude_list.pairs.id=1"></i>
+                                <i class="fa fa-minus-circle fa-1x"
+                                   data-bind-show-if-not-eq="EXCLUSION.exclude_list.pairs.id=1"></i>
 
                                 <span style="margin-right:1em;"></span>
                             </div>

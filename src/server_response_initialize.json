@@ -41,13 +41,23 @@
       "id": "1",
       "pairs": [
         {
-          "id": "1"
+          "id": "1",
+          "selected_factor": {
+            "id": "1",
+            "options": [
+              {
+                "name": "利用する"
+              },
+              {
+                "selected": "selected",
+                "name": "利用しない"
+              }
+            ]
+          }
         },
         {
-          "id": "2"
-        },
-        {
-          "id": "3"
+          "id": "2",
+          "selected_factor": {}
         }
       ]
     },
@@ -55,10 +65,16 @@
       "id": "2",
       "pairs": [
         {
-          "id": "1"
+          "id": "1",
+          "selected_factor": {}
         },
         {
-          "id": "2"
+          "id": "2",
+          "selected_factor": {}
+        },
+        {
+          "id": "3",
+          "selected_factor": {}
         }
       ]
     }
