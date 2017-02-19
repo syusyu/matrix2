@@ -1039,14 +1039,10 @@ spa_page_transition.data_bind = (function () {
                     return this;
                 },
                 is_target: function (key) {
-                    if (spa_page_util.contains(this.entity_prop, 'selected_option')) {
-                        spa_page_transition.getLogger().debug('####entity_prop', this.entity_prop,
-                            'prop_map', _get_all_prop_map());
-                    }
                     if (this.entity && key !== this.entity) {
                         return false;
                     }
-                    return !(!_get_all_prop_map()[this.entity_prop]);
+                    return true;
                 },
                 visible: function () {
                     if (!this.prepared) {
@@ -1084,6 +1080,9 @@ spa_page_transition.data_bind = (function () {
 
             createShowCondEq = function () {
                 var res = Object.create(showCondProto);
+                res.is_target = function () {
+                    return showCondProto.is_target.apply(this, arguments) && !(!_get_all_prop_map()[this.entity_prop]);
+                };
                 res.matches = function () {
                     if (!this.val) {
                         return false;
@@ -1098,8 +1097,24 @@ spa_page_transition.data_bind = (function () {
 
             createShowCondEmpty = function () {
                 var res = Object.create(showCondProto);
+                res.is_target = function () {
+                    var result = showCondProto.is_target.apply(this, arguments);
+                    if (!result) {
+                        return false;
+                    }
+
+                    var found = false;
+                    var all_prop_map = _get_all_prop_map();
+                    var entity_prop = this.entity_prop;
+                    $.each(all_prop_map, function (key, val) {
+                        if (spa_page_util.startsWith(key, entity_prop)) {
+                            found = true;
+                            return false;
+                        }
+                    });
+                    return found;
+                };
                 res.matches = function () {
-                    spa_page_transition.getLogger().debug('entity_prop', this.entity_prop, 'val', this.val, 'data', this.data);
                     if (!this.val) {
                         return true;
                     } else if (typeof this.val === 'object') {
