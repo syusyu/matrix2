@@ -46,6 +46,11 @@ var matrix2 = (function () {
                 observer.trigger('EXCLUSION', matrix2.model.remove_exclusion(anchor_map.id));
             }),
 
+            addExclusionPair = spa_page_transition.createFunc(function (observer, anchor_map) {
+                getLogger().debug('addExclusionPair is called!', anchor_map);
+                observer.trigger('EXCLUSION', matrix2.model.add_exclusion_pair(anchor_map.id));
+            }),
+
             initializationFunc = spa_page_transition.createAjaxFunc(PATH_INIT, null, function (observer, anchor_map, data) {
                 // getLogger().debug('initial data loaded!');
                 matrix2.model.prepare(data);
@@ -67,6 +72,7 @@ var matrix2 = (function () {
             .addAction('remove-factor-option', 'main', [removeFactorOption])
             .addAction('add-exclusion', 'main', [addExclusion])
             .addAction('remove-exclusion', 'main', [removeExclusion])
+            .addAction('add-exclusion-pair', 'main', [addExclusionPair])
             .run();
     };
 
@@ -81,9 +87,9 @@ matrix2.model = (function () {
         _factors, get_factors, add_factor, remove_factor,
         _input_factor_options, get_input_factor_options, add_input_factor_option, remove_input_factor_option,
         _input_factor_options_of_first, init_input_factor_options,
-        _exclusion_list, get_exclusion, add_exclusion, remove_exclusion,
-        _exclude_list_of_first, init_exclude_list,
-        _get_str_max_id, _filter_list_by_id,
+        _exclusion_list, get_exclusion, add_exclusion, remove_exclusion, add_exclusion_pair,
+        _exclusion_list_of_first, init_exclusion_list,
+        _get_str_max_id, _filter_list_by_id, _find_exclusion_pairs,
         prepare;
 
     prepare = function (data) {
@@ -91,7 +97,7 @@ matrix2.model = (function () {
         _input_factor_options = data.input_factor_options;
         _input_factor_options_of_first = data.input_factor_options;
         _exclusion_list = data.exclude_list;
-        _exclude_list_of_first = data.exclude_list;
+        _exclusion_list_of_first = data.exclude_list;
     };
 
     //factors
@@ -128,18 +134,27 @@ matrix2.model = (function () {
     get_exclusion = function () {
         return {'exclude_list': _exclusion_list};
     };
-    init_exclude_list = function () {
-        _exclusion_list = _exclude_list_of_first;
+    init_exclusion_list = function () {
+        _exclusion_list = _exclusion_list_of_first;
         return get_exclusion();
     };
     add_exclusion = function () {
-        var new_exclusion = jQuery.extend(true, {}, _exclude_list_of_first[0]);
+        var new_exclusion = jQuery.extend(true, {}, _exclusion_list_of_first[0]);
         new_exclusion.id = _get_str_max_id(_exclusion_list);
         _exclusion_list.push(new_exclusion);
         return get_exclusion();
     };
     remove_exclusion = function (selected_id) {
         _exclusion_list = _filter_list_by_id(_exclusion_list, selected_id, 'remove-exclusion-id-');
+        return get_exclusion();
+    };
+    add_exclusion_pair = function (selected_id) {
+        var
+            selected_exclusion = _find_exclusion_pairs(selected_id, 'add-exclusion-pair-id-');
+        if (!selected_exclusion) {
+            return;
+        }
+        selected_exclusion.pairs.push({'id': _get_str_max_id(selected_exclusion.pairs), 'selected_factor': {}});
         return get_exclusion();
     };
 
@@ -152,8 +167,13 @@ matrix2.model = (function () {
     };
     _filter_list_by_id = function (list, selected_id, prefix_of_id) {
         return list.filter(function (el) {
-            return  selected_id !== prefix_of_id + el.id;
+            return selected_id !== prefix_of_id + el.id;
         });
+    };
+    _find_exclusion_pairs = function (selected_id, prefix_of_id) {
+        return _exclusion_list.filter(function (el) {
+            return selected_id === prefix_of_id + el.id;
+        })[0] || null;
     };
 
     return {
@@ -166,9 +186,10 @@ matrix2.model = (function () {
         remove_input_factor_option: remove_input_factor_option,
         init_input_factor_options: init_input_factor_options,
         get_exclude: get_exclusion,
-        init_exclude_list: init_exclude_list,
+        init_exclude_list: init_exclusion_list,
         add_exclusion: add_exclusion,
         remove_exclusion: remove_exclusion,
+        add_exclusion_pair: add_exclusion_pair,
     }
 
 })();

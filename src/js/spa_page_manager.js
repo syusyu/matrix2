@@ -642,7 +642,8 @@ spa_page_transition.data_bind = (function () {
             get_toggle_class_list,
             trigger, show_condition,
 
-            BIND_ATTR_TYPES = ['id', 'text', 'text1', 'text2', 'text3', 'html', 'val', 'val1', 'val2', 'val3', 'loop', 'selected'],
+            BIND_ATTR_TYPES = ['id', 'id1', 'id2', 'id3', 'text', 'text1', 'text2', 'text3', 'val', 'val1', 'val2', 'val3',
+                'html', 'loop', 'selected'],
             SHOW_COND_SELECTORS = [
                 'data-bind-show-if-eq', 'data-bind-show-if-not-eq', 'data-bind-show-if-empty', 'data-bind-show-if-not-empty',
                 'data-bind-show-if', 'data-bind-show-id'],
@@ -760,6 +761,7 @@ spa_page_transition.data_bind = (function () {
                 affix = $el.attr('data-bind-affix-' + attr),
                 separator = $el.attr('data-bind-text-separator') || '',
                 val_separator = $el.attr('data-bind-val-separator') || '',
+                id_separator = $el.attr('data-bind-id-separator') || '',
                 val = _format_bind_val(data, prop_key, format, affix);
 
             if (attr === 'text') {
@@ -782,6 +784,13 @@ spa_page_transition.data_bind = (function () {
                     $el.val(prev_val + val_separator + val);
                 } else {
                     $el.val(val);
+                }
+            } else if (attr === 'id1' || attr === 'id2' || attr === 'id3') {
+                prev_val = $el.attr(attr);
+                if (prev_val) {
+                    $el.attr(attr, prev_val + id_separator + val);
+                } else {
+                    $el.attr(attr, val);
                 }
             } else if (attr === 'selected') {
                 $el.attr(attr, 'selected');
