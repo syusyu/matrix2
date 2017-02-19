@@ -109,7 +109,13 @@
 
                                 <!-- Remove pair -->
                                 <i class="fa fa-minus-circle fa-1x"
-                                   data-bind-show-if-not-eq="EXCLUSION.exclude_list.pairs.id=1"></i>
+                                   data-bind-show-if-not-eq="EXCLUSION.exclude_list.pairs.id=1"
+                                   data-bind-id1="EXCLUSION.exclude_list.id"
+                                   data-bind-id2="EXCLUSION.exclude_list.pairs.id"
+                                   data-bind-affix-id1="remove-exclusion-pair-id-#"
+                                   data-bind-id-separator="-"
+                                   data-action-force-click-id="remove-exclusion-pair"
+                                   data-action-click-params="id"></i>
 
                                 <span style="margin-right:1em;"></span>
                             </div>

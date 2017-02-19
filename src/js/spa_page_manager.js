@@ -636,6 +636,7 @@ spa_page_transition.data_bind = (function () {
             _settle_bind_val, _extract_val, _get_bind_val, _format_bind_val, _affix_bind_val,
             _each_attr_type, _each_attr_type_selectors,
 
+            _clone_target_elements, _hide_clone_target_elements,
             _create_loop_element, _do_find_loop_element, _clone_loop_children,
             _replace_cloned_element_attr, _replace_cloned_element_attr_condition,
 
@@ -662,6 +663,7 @@ spa_page_transition.data_bind = (function () {
                 }
             });
             _bind_prop_map = {};
+            _clone_target_elements = [];
             _create_bind_prop_map(key, data);
             return this;
         };
@@ -786,11 +788,11 @@ spa_page_transition.data_bind = (function () {
                     $el.val(val);
                 }
             } else if (attr === 'id1' || attr === 'id2' || attr === 'id3') {
-                prev_val = $el.attr(attr);
+                prev_val = $el.attr('id');
                 if (prev_val) {
-                    $el.attr(attr, prev_val + id_separator + val);
+                    $el.attr('id', prev_val + id_separator + val);
                 } else {
-                    $el.attr(attr, val);
+                    $el.attr('id', val);
                 }
             } else if (attr === 'selected') {
                 $el.attr(attr, 'selected');
@@ -842,7 +844,7 @@ spa_page_transition.data_bind = (function () {
             var
                 i, $el_cloned,
                 list = _get_bind_val(data, loop_prop_key),
-                cloned_elements = [], clone_target_elements = [],
+                cloned_elements = [],
                 bind_attr_type_selectors = _each_attr_type_selectors();
 
             if (spa_page_util.isEmpty(list)) {
@@ -860,16 +862,13 @@ spa_page_transition.data_bind = (function () {
                         _replace_cloned_element_attr_condition($(el_cloned_child), loop_prop_key, i);
                     });
                     cloned_elements.push($el_cloned);
-                    clone_target_elements.push($(el_child));
+                    _clone_target_elements.push($(el_child));
                 });
             }
 
             $.each(cloned_elements, function (idx, el_child) {
                 $(el_child).show();
                 $(el).append(el_child);
-            });
-            $.each(clone_target_elements, function (idx, $el_child) {
-                $el_child.hide();
             });
 
             return cloned_elements;
@@ -903,6 +902,12 @@ spa_page_transition.data_bind = (function () {
                         return false;
                     }
                 });
+            });
+        };
+
+        _hide_clone_target_elements = function () {
+            $.each(_clone_target_elements, function (idx, el) {
+                $(el).hide();
             });
         };
 
@@ -1002,6 +1007,8 @@ spa_page_transition.data_bind = (function () {
                     }
                 });
             });
+
+            _hide_clone_target_elements();
         };
 
         show_condition = (function () {
