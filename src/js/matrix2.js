@@ -83,6 +83,7 @@ matrix2.model = (function () {
         _input_factor_options_of_first, init_input_factor_options,
         _exclusion_list, get_exclusion, add_exclusion, remove_exclusion,
         _exclude_list_of_first, init_exclude_list,
+        _get_str_max_id, _filter_list_by_id,
         prepare;
 
     prepare = function (data) {
@@ -98,17 +99,11 @@ matrix2.model = (function () {
         return {"factors": _factors};
     };
     add_factor = function (name, options) {
-        var
-            max_id = spa_page_util.isEmpty(_factors) ? 0 : Math.max.apply(null, _factors.map(function (el) {
-                return el.id;
-            }));
-        _factors.push({'id': String(max_id + 1), 'name': name, 'options': options});
+        _factors.push({'id': _get_str_max_id(_factors), 'name': name, 'options': options});
         return get_factors();
     };
-    remove_factor = function (id) {
-        _factors = _factors.filter(function (el) {
-            return id !== el.id;
-        });
+    remove_factor = function (selected_id) {
+        _factors = _filter_list_by_id(_factors, selected_id, '');
         return get_factors();
     };
 
@@ -117,17 +112,11 @@ matrix2.model = (function () {
         return {"input_factor_options": _input_factor_options};
     };
     add_input_factor_option = function () {
-        var
-            max_id = spa_page_util.isEmpty(_input_factor_options) ? 0 : Math.max.apply(null, _input_factor_options.map(function (el) {
-                return el.id;
-            })) + 1;
-        _input_factor_options.push({'id': String(max_id)});
+        _input_factor_options.push({'id': _get_str_max_id(_input_factor_options)});
         return get_input_factor_options();
     };
-    remove_input_factor_option = function (id) {
-        _input_factor_options = _input_factor_options.filter(function (el) {
-            return  id !== 'factor-input-option-remove-' + el.id;
-        });
+    remove_input_factor_option = function (selected_id) {
+        _input_factor_options = _filter_list_by_id(_input_factor_options, selected_id, 'remove-factor-option-id-');
         return get_input_factor_options();
     };
     init_input_factor_options = function () {
@@ -144,21 +133,27 @@ matrix2.model = (function () {
         return get_exclusion();
     };
     add_exclusion = function () {
-        var
-            max_id = spa_page_util.isEmpty(_exclusion_list) ? 0 : Math.max.apply(null, _exclusion_list.map(function (el) {
-                    return el.id;
-                })) + 1,
-            new_exclusion = jQuery.extend(true, {}, _exclude_list_of_first[0]);
-
-        new_exclusion.id = max_id;
+        var new_exclusion = jQuery.extend(true, {}, _exclude_list_of_first[0]);
+        new_exclusion.id = _get_str_max_id(_exclusion_list);
         _exclusion_list.push(new_exclusion);
         return get_exclusion();
     };
-    remove_exclusion = function (id) {
-        _exclusion_list = _exclusion_list.filter(function (el) {
-            return  id !== 'exclusion-remove-' + el.id;
-        });
+    remove_exclusion = function (selected_id) {
+        _exclusion_list = _filter_list_by_id(_exclusion_list, selected_id, 'remove-exclusion-id-');
         return get_exclusion();
+    };
+
+    //util
+    _get_str_max_id = function (list) {
+        var max_id = spa_page_util.isEmpty(list) ? 0 : Math.max.apply(null, list.map(function (el) {
+                return el.id;
+            })) + 1;
+        return String(max_id);
+    };
+    _filter_list_by_id = function (list, selected_id, prefix_of_id) {
+        return list.filter(function (el) {
+            return  selected_id !== prefix_of_id + el.id;
+        });
     };
 
     return {

@@ -64,11 +64,11 @@
                             <div data-bind-loop="FACTOR_OPTION.input_factor_options">
                                 <input type="text" class="input_factor_option"
                                        data-bind-id="FACTOR_OPTION.input_factor_options.id"
-                                       data-bind-affix-id="factor-input-option-#"/>
+                                       data-bind-affix-id="factor-option-input-id-#"/>
                                 <i class="fa fa-minus-circle fa-1x"
                                    data-bind-show-if-not-eq="FACTOR_OPTION.input_factor_options.id=1"
                                    data-bind-id="FACTOR_OPTION.input_factor_options.id"
-                                   data-bind-affix-id="factor-input-option-remove-#"
+                                   data-bind-affix-id="remove-factor-option-id-#"
                                    data-action-click-id="remove-factor-option" data-action-click-params="id"></i>
                                 <br/>
                             </div>
@@ -82,7 +82,7 @@
                         <div class="filter-pairs-box">
                             <i class="fa fa-minus-circle fa-2x"
                                data-bind-id="EXCLUSION.exclude_list.id"
-                               data-bind-affix-id="exclusion-remove-#"
+                               data-bind-affix-id="remove-exclusion-id-#"
                                data-action-force-click-id="remove-exclusion" data-action-click-params="id"></i>
                             <span style="margin-right:1em;"></span>
 
@@ -114,7 +114,11 @@
                                 <span style="margin-right:1em;"></span>
                             </div>
                             <!-- Add pair -->
-                            <i class="fa fa-plus-circle fa-1x" data-action-force-click-id="add-factor-option"></i>
+                            <i class="fa fa-plus-circle fa-1x"
+                               data-bind-id="EXCLUSION.excludelist.id"
+                               data-bind-affix-id=""
+                               data-action-force-click-id="add-exclusion-pair"
+                               data-action-click-params="id"></i>
                         </div>
                     </div>
                     <i class="fa fa-plus-circle fa-2x" data-action-force-click-id="add-exclusion"></i>
