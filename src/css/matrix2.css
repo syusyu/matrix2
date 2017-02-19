@@ -35,3 +35,9 @@ div.factor-title-close {
 .input_factor_option {
     width: 120px;
 }
+
+.filter-box {
+    margin:20px 0px 10px 20px;
+    display: flex;
+
+}

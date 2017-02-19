@@ -104,8 +104,8 @@ matrix2.model = (function () {
         var
             max_id = Math.max.apply(null, input_factor_options.map(function (el) {
                 return el.id;
-            }));
-        input_factor_options.push({'id': max_id + 1});
+            })) + 1;
+        input_factor_options.push({'id': String(max_id)});
         return get_input_factor_options();
     };
     remove_input_factor_option = function (id) {
