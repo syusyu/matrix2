@@ -270,6 +270,7 @@ spa_page_transition.func = (function () {
         },
 
         trigger: function (key, val) {
+            spa_page_transition.getLogger().debug('trigger.key', key, 'val', val);
             spa_page_transition.data_bind.evt_data_bind_view.trigger(key, val);
             return this;
         },

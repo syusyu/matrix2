@@ -34,18 +34,18 @@
                 <div class="spa-page main">
                     <!-- FACTORS -->
                     <div>
-                        <ul class="factors" data-bind-loop="DATA_FACTORS.factors">
+                        <ul class="factors" data-bind-loop="FACTOR.factors">
                             <li class="factor">
                                 <div class="factor-box">
                                     <div class="factor-title">
                                         <div class="factor-title-close" data-action-click-id="remove-factor"
-                                             data-bind-id="DATA_FACTORS.factors.id" data-action-click-params="id">×
+                                             data-bind-id="FACTOR.factors.id" data-action-click-params="id">×
                                         </div>
                                     </div>
                                     <div class="factor-body">
-                                        <h4 data-bind-text="DATA_FACTORS.factors.name"></h4>
-                                        <ul data-bind-loop="DATA_FACTORS.factors.options">
-                                            <li data-bind-text="DATA_FACTORS.factors.options.name"></li>
+                                        <h4 data-bind-text="FACTOR.factors.name"></h4>
+                                        <ul data-bind-loop="FACTOR.factors.options">
+                                            <li data-bind-text="FACTOR.factors.options.name"></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -61,43 +61,51 @@
                             <i class="fa fa-check-square fa-2x factor-check-btn"
                                data-action-force-click-id="add-factor"></i>
 
-                            <div data-bind-loop="DATA_INPUT_FACTOR_OPTIONS.input_factor_options">
+                            <div data-bind-loop="FACTOR_OPTION.input_factor_options">
                                 <input type="text" class="input_factor_option"
-                                       data-bind-id="DATA_INPUT_FACTOR_OPTIONS.input_factor_options.id"
+                                       data-bind-id="FACTOR_OPTION.input_factor_options.id"
                                        data-bind-affix-id="factor-input-option-#"/>
                                 <i class="fa fa-minus-circle fa-1x"
-                                   data-bind-show-if-not-eq="DATA_INPUT_FACTOR_OPTIONS.input_factor_options.id=1"
-                                   data-bind-id="DATA_INPUT_FACTOR_OPTIONS.input_factor_options.id"
+                                   data-bind-show-if-not-eq="FACTOR_OPTION.input_factor_options.id=1"
+                                   data-bind-id="FACTOR_OPTION.input_factor_options.id"
                                    data-bind-affix-id="factor-input-option-remove-#"
                                    data-action-click-id="remove-factor-option" data-action-click-params="id"></i>
                                 <br/>
                             </div>
 
-                            <i class="fa fa-plus-circle fa-2x" data-action-force-click-id="add-factor-option"></i>
+                            <i class="fa fa-plus-circle fa-1x" data-action-force-click-id="add-factor-option"></i>
                         </div>
                     </div>
 
                     <!-- FILTER OF EXCLUSION -->
-                    <div class="filter-box" data-bind-loop="EXCLUDE.exclude_list">
-                        <div data-bind-loop="EXCLUDE.exclude_list.pairs">
-
-                            <i class="fa fa-times fa-1x" data-bind-show-if-not-eq="EXCLUDE.exclude_list.pairs.id=1"></i>
-
-                            <select data-bind-loop="DATA_FACTORS.factors">
-                                <option data-bind-text="DATA_FACTORS.factors.name"></option>
-                            </select>
-
-                            <select data-bind-loop="DATA_FACTORS.factors">
-                                <option></option>
-                            </select>
-
-                            <i class="fa fa-minus-circle fa-1x" data-bind-show-if-not-eq="EXCLUDE.exclude_list.pairs.id=1"></i>
-
+                    <div class="filter-list-box" data-bind-loop="EXCLUSION.exclude_list">
+                        <div class="filter-pairs-box">
+                            <i class="fa fa-minus-circle fa-2x"
+                               data-bind-id="EXCLUSION.exclude_list.id"
+                               data-bind-affix-id="exclusion-remove-#"
+                               data-action-force-click-id="remove-exclusion" data-action-click-params="id"></i>
                             <span style="margin-right:1em;"></span>
 
+                            <div data-bind-loop="EXCLUSION.exclude_list.pairs">
+
+                                <i class="fa fa-times fa-1x" data-bind-show-if-not-eq="EXCLUSION.exclude_list.pairs.id=1"></i>
+
+                                <select data-bind-loop="FACTOR.factors">
+                                    <option data-bind-text="FACTOR.factors.name"></option>
+                                </select>
+
+                                <select data-bind-loop="FACTOR.factors">
+                                    <option></option>
+                                </select>
+
+                                <i class="fa fa-minus-circle fa-1x" data-bind-show-if-not-eq="EXCLUSION.exclude_list.pairs.id=1"></i>
+
+                                <span style="margin-right:1em;"></span>
+                            </div>
+                            <i class="fa fa-plus-circle fa-1x" data-action-force-click-id="add-factor-option"></i>
                         </div>
-                        <i class="fa fa-plus-circle fa-2x" data-action-force-click-id="add-factor-option"></i>
                     </div>
+                    <i class="fa fa-plus-circle fa-2x" data-action-force-click-id="add-exclusion"></i>
                 </div>
             </div>
         </div><!-- col -->

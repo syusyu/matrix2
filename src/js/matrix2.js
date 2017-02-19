@@ -14,36 +14,48 @@ var matrix2 = (function () {
             PATH_INIT = server_host + '/server_response_initialize.json',
 
             addFactor = spa_page_transition.createFunc(function (observer, anchor_map) {
-                observer.trigger('DATA_FACTORS',
+                observer.trigger('FACTOR',
                     matrix2.model.add_factor(matrix2.shell.get_factor_name(), matrix2.shell.get_factor_options()));
-                observer.trigger('DATA_INPUT_FACTOR_OPTIONS', matrix2.model.init_input_factor_options());
+                observer.trigger('FACTOR_OPTION', matrix2.model.init_input_factor_options());
+                observer.trigger('EXCLUSION', matrix2.model.get_exclude());
             }),
 
             removeFactor = spa_page_transition.createFunc(function (observer, anchor_map) {
                 getLogger().debug('removeFactor is called!', anchor_map);
-                observer.trigger('DATA_FACTORS', matrix2.model.remove_factor(anchor_map.id));
+                observer.trigger('FACTOR', matrix2.model.remove_factor(anchor_map.id));
+                observer.trigger('EXCLUSION', matrix2.model.get_exclude());
             }),
 
             addFactorOption = spa_page_transition.createFunc(function (observer, anchor_map) {
                 getLogger().debug('addFactorOption is called!', anchor_map);
-                observer.trigger('DATA_INPUT_FACTOR_OPTIONS', matrix2.model.add_input_factor_option());
+                observer.trigger('FACTOR_OPTION', matrix2.model.add_input_factor_option());
             }),
 
             removeFactorOption = spa_page_transition.createFunc(function (observer, anchor_map) {
                 getLogger().debug('removeFactorOption is called!', anchor_map);
-                observer.trigger('DATA_INPUT_FACTOR_OPTIONS', matrix2.model.remove_input_factor_option(anchor_map.id));
+                observer.trigger('FACTOR_OPTION', matrix2.model.remove_input_factor_option(anchor_map.id));
+            }),
+
+            addExclusion = spa_page_transition.createFunc(function (observer, anchor_map) {
+                getLogger().debug('addExclusion is called!', anchor_map);
+                observer.trigger('EXCLUSION', matrix2.model.add_exclusion());
+            }),
+
+            removeExclusion = spa_page_transition.createFunc(function (observer, anchor_map) {
+                getLogger().debug('removeExclusion is called!', anchor_map);
+                observer.trigger('EXCLUSION', matrix2.model.remove_exclusion(anchor_map.id));
             }),
 
             initializationFunc = spa_page_transition.createAjaxFunc(PATH_INIT, null, function (observer, anchor_map, data) {
-                // getLogger().debug('initial data loaded! data', data);
+                // getLogger().debug('initial data loaded!');
                 matrix2.model.prepare(data);
-                observer.trigger('DATA_FACTORS', matrix2.model.get_factors());
-                observer.trigger('DATA_INPUT_FACTOR_OPTIONS', matrix2.model.get_input_factor_options());
-                observer.trigger('EXCLUDE', matrix2.model.get_exclude());
+                observer.trigger('FACTOR', matrix2.model.get_factors());
+                observer.trigger('FACTOR_OPTION', matrix2.model.get_input_factor_options());
+                observer.trigger('EXCLUSION', matrix2.model.get_exclude());
             });
 
 
-        logger = spa_log.createLogger(is_debug_mode, '### PLAN_CHANGE.LOG ###');
+        logger = spa_log.createLogger(is_debug_mode, '### MATRIX2.LOG ###');
 
         matrix2.shell.initModule($container);
 
@@ -53,6 +65,8 @@ var matrix2 = (function () {
             .addAction('remove-factor', 'main', [removeFactor])
             .addAction('add-factor-option', 'main', [addFactorOption])
             .addAction('remove-factor-option', 'main', [removeFactorOption])
+            .addAction('add-exclusion', 'main', [addExclusion])
+            .addAction('remove-exclusion', 'main', [removeExclusion])
             .run();
     };
 
@@ -64,33 +78,35 @@ var matrix2 = (function () {
 
 matrix2.model = (function () {
     var
-        factors, get_factors, add_factor, remove_factor,
-        input_factor_options, get_input_factor_options, add_input_factor_option, remove_input_factor_option,
-        input_factor_options_of_first, init_input_factor_options,
-        _exclude_list, get_exclude,
+        _factors, get_factors, add_factor, remove_factor,
+        _input_factor_options, get_input_factor_options, add_input_factor_option, remove_input_factor_option,
+        _input_factor_options_of_first, init_input_factor_options,
+        _exclusion_list, get_exclusion, add_exclusion, remove_exclusion,
+        _exclude_list_of_first, init_exclude_list,
         prepare;
 
     prepare = function (data) {
-        factors = data.factors;
-        input_factor_options = data.input_factor_options;
-        input_factor_options_of_first = data.input_factor_options;
-        _exclude_list = data.exclude_list;
+        _factors = data.factors;
+        _input_factor_options = data.input_factor_options;
+        _input_factor_options_of_first = data.input_factor_options;
+        _exclusion_list = data.exclude_list;
+        _exclude_list_of_first = data.exclude_list;
     };
 
     //factors
     get_factors = function () {
-        return {"factors": factors};
+        return {"factors": _factors};
     };
     add_factor = function (name, options) {
         var
-            max_id = spa_page_util.isEmpty(factors) ? 0 : Math.max.apply(null, factors.map(function (el) {
+            max_id = spa_page_util.isEmpty(_factors) ? 0 : Math.max.apply(null, _factors.map(function (el) {
                 return el.id;
             }));
-        factors.push({'id': String(max_id + 1), 'name': name, 'options': options});
+        _factors.push({'id': String(max_id + 1), 'name': name, 'options': options});
         return get_factors();
     };
     remove_factor = function (id) {
-        factors = factors.filter(function (el) {
+        _factors = _factors.filter(function (el) {
             return id !== el.id;
         });
         return get_factors();
@@ -98,29 +114,51 @@ matrix2.model = (function () {
 
     //input-factor-options
     get_input_factor_options = function () {
-        return {"input_factor_options": input_factor_options};
+        return {"input_factor_options": _input_factor_options};
     };
     add_input_factor_option = function () {
         var
-            max_id = Math.max.apply(null, input_factor_options.map(function (el) {
+            max_id = spa_page_util.isEmpty(_input_factor_options) ? 0 : Math.max.apply(null, _input_factor_options.map(function (el) {
                 return el.id;
             })) + 1;
-        input_factor_options.push({'id': String(max_id)});
+        _input_factor_options.push({'id': String(max_id)});
         return get_input_factor_options();
     };
     remove_input_factor_option = function (id) {
-        input_factor_options = input_factor_options.filter(function (el) {
+        _input_factor_options = _input_factor_options.filter(function (el) {
             return  id !== 'factor-input-option-remove-' + el.id;
         });
         return get_input_factor_options();
     };
     init_input_factor_options = function () {
-        input_factor_options = input_factor_options_of_first;
+        _input_factor_options = _input_factor_options_of_first;
         return get_input_factor_options();
     };
 
-    get_exclude = function () {
-        return {'exclude_list': _exclude_list};
+    //exclude-list
+    get_exclusion = function () {
+        return {'exclude_list': _exclusion_list};
+    };
+    init_exclude_list = function () {
+        _exclusion_list = _exclude_list_of_first;
+        return get_exclusion();
+    };
+    add_exclusion = function () {
+        var
+            max_id = spa_page_util.isEmpty(_exclusion_list) ? 0 : Math.max.apply(null, _exclusion_list.map(function (el) {
+                    return el.id;
+                })) + 1,
+            new_exclusion = jQuery.extend(true, {}, _exclude_list_of_first[0]);
+
+        new_exclusion.id = max_id;
+        _exclusion_list.push(new_exclusion);
+        return get_exclusion();
+    };
+    remove_exclusion = function (id) {
+        _exclusion_list = _exclusion_list.filter(function (el) {
+            return  id !== 'exclusion-remove-' + el.id;
+        });
+        return get_exclusion();
     };
 
     return {
@@ -132,7 +170,10 @@ matrix2.model = (function () {
         add_input_factor_option: add_input_factor_option,
         remove_input_factor_option: remove_input_factor_option,
         init_input_factor_options: init_input_factor_options,
-        get_exclude: get_exclude,
+        get_exclude: get_exclusion,
+        init_exclude_list: init_exclude_list,
+        add_exclusion: add_exclusion,
+        remove_exclusion: remove_exclusion,
     }
 
 })();

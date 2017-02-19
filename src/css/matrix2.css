@@ -36,8 +36,9 @@ div.factor-title-close {
     width: 120px;
 }
 
-.filter-box {
-    margin:20px 0px 10px 20px;
-    display: flex;
-
+/*** Filter ***/
+.filter-list-box {
+    margin:20px 0px 10px 0px;
+}
+.filter-pairs-box {
 }
