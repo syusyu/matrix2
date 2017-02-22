@@ -92,8 +92,20 @@
                                    data-bind-show-if-not-eq="EXCLUSION.exclude_list.pairs.id=1"></i>
 
                                 <!-- Factor -->
-                                <select data-bind-loop="FACTOR.factors">
-                                    <option data-bind-text="FACTOR.factors.name"
+                                <select class=""
+                                        data-bind-loop="FACTOR.factors"
+                                        data-bind-id1="EXCLUSION.exclude_list.id"
+                                        data-bind-id2="EXCLUSION.exclude_list.pairs.id"
+                                        data-bind-affix-id1="select-exclusion-pair-id-#"
+                                        data-bind-id-separator="-"
+                                        data-action-change-id="select-exclusion-pair"
+                                        data-action-change-params="val">
+                                    <option class=""
+                                            data-bind-val1="EXCLUSION.exclude_list.id"
+                                            data-bind-val2="EXCLUSION.exclude_list.pairs.id"
+                                            data-bind-val3="FACTOR.factors.id"
+                                            data-bind-val-separator="-"
+                                            data-bind-text="FACTOR.factors.name"
                                             data-bind-selected="EXCLUSION.exclude_list.pairs.selected"></option>
                                 </select>
 
