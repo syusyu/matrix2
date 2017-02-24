@@ -58,7 +58,7 @@ var matrix2 = (function () {
 
             selectExclusionPair = spa_page_transition.createFunc(function (observer, anchor_map) {
                 getLogger().debug('selectExclusionPair is called!', anchor_map);
-                observer.trigger('EXCLUSION', matrix2.model.select_exclusion_pair());
+                observer.trigger('EXCLUSION', matrix2.model.select_exclusion_pair(anchor_map.val));
             }),
 
             initializationFunc = spa_page_transition.createAjaxFunc(PATH_INIT, null, function (observer, anchor_map, data) {
@@ -102,7 +102,7 @@ matrix2.model = (function () {
         _exclusion_list, get_exclusion, add_exclusion, remove_exclusion, add_exclusion_pair, remove_exclusion_pair,
         select_exclusion_pair,
         _exclusion_list_of_first, init_exclusion_list,
-        _get_str_max_id, _filter_list_by_id, _find_exclusion_pairs,
+        _get_str_max_id, _filter_list_by_id, _find_element_by_id, _extract_id_set,
         prepare;
 
     prepare = function (data) {
@@ -190,14 +190,15 @@ matrix2.model = (function () {
         selected_exclusion.pairs = _filter_list_by_id(selected_exclusion.pairs, exclusion_pair_id, '');
         return get_exclusion();
     };
-    select_exclusion_pair = function (selected_id) {
+    select_exclusion_pair = function (selected_val) {
         var
             exclusion_id,
             exclusion_pair_id,
             factor_option_val,
             selected_exclusion,
             selected_exclusion_pair,
-            ids = _extract_id_set(selected_id, 'select-exclusion-pair-id-');
+            selected_factor,
+            ids = _extract_id_set(selected_val, '');
         if (!ids || ids.length !== 3) {
             return get_exclusion();
         }
@@ -207,7 +208,21 @@ matrix2.model = (function () {
             matrix2.getLogger().warn('selected_exclusion is not found. exclusion_id', exclusion_id);
             return get_exclusion();
         }
-        selected_exclusion_pair = _
+        exclusion_pair_id = ids[1];
+        selected_exclusion_pair = _find_element_by_id(selected_exclusion.pairs, exclusion_pair_id, '');
+        if (!selected_exclusion_pair) {
+            matrix2.getLogger().warn('selected_exclusion_pair is not found. exclusion_pair_id', exclusion_pair_id);
+            return get_exclusion();
+        }
+        factor_option_val = ids[2];
+        selected_factor = _find_element_by_id(_factors, factor_option_val, '');
+        if (!selected_factor) {
+            matrix2.getLogger().warn('selected_factor is not found. factor_option_val', factor_option_val);
+            return get_exclusion();
+        }
+        selected_exclusion_pair.selected_factor = selected_factor;
+        selected_exclusion_pair.selected = true;
+        return get_exclusion();
     };
 
     //util
@@ -222,13 +237,14 @@ matrix2.model = (function () {
             return selected_id !== prefix_of_id + el.id;
         });
     };
-    var _find_element_by_id = function (list, selected_id, prefix_of_id) {
+    _find_element_by_id = function (list, selected_id, prefix_of_id) {
         return list.filter(function (el) {
             return selected_id === prefix_of_id + el.id;
         })[0] || null;
     };
-    var _extract_id_set = function (selected_id, prefix_of_id) {
+    _extract_id_set = function (selected_id, prefix_of_id) {
         var ids = selected_id.substr(prefix_of_id.length).split('-');
+        // var ids = prefix_of_id ? selected_id.substr(prefix_of_id.length).split('-') : selected_id.split('-');
         if (!ids || ids.length < 2) {
             matrix2.getLogger().warn('id is incorrect. selected_id', selected_id);
         }
