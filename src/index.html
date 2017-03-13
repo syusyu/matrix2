@@ -89,13 +89,14 @@
                             <div data-bind-loop="EXCLUSION.exclude_list.pairs">
 
                                 <i class="fa fa-times fa-1x"
-                                   data-bind-show-if-not-eq="EXCLUSION.exclude_list.pairs.id=1"></i>
+                                   data-bind-show-if-not-eq="EXCLUSION.exclude_list.pairs.id=100"></i>
 
                                 <!-- Factor -->
                                 <select class=""
                                         data-bind-loop="FACTOR.factors"
                                         data-bind-id1="EXCLUSION.exclude_list.id"
                                         data-bind-id2="EXCLUSION.exclude_list.pairs.id"
+                                        data-bind-id3="FACTOR.factors.id"
                                         data-bind-affix-id1="select-exclusion-pair-id-#"
                                         data-bind-id-separator="-"
                                         data-action-change-id="select-exclusion-pair"
@@ -122,7 +123,7 @@
 
                                 <!-- Remove pair -->
                                 <i class="fa fa-minus-circle fa-1x"
-                                   data-bind-show-if-not-eq="EXCLUSION.exclude_list.pairs.id=1"
+                                   data-bind-show-if-not-eq="EXCLUSION.exclude_list.pairs.id=100"
                                    data-bind-id1="EXCLUSION.exclude_list.id"
                                    data-bind-id2="EXCLUSION.exclude_list.pairs.id"
                                    data-bind-affix-id1="remove-exclusion-pair-id-#"

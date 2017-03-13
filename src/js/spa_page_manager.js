@@ -12,9 +12,10 @@
 var spa_page_transition = (function () {
     'use strict';
     var
-        addAction, createFunc, createAjaxFunc, initialize, debugMode, run, renderPage,
+        addAction, createFunc, createAjaxFunc, initialize, run, renderPage,
         spaLogger, getLogger,
-        isDebugMode;
+        isDebugMode, debugMode,
+        isUnitTestMode, unitTestMode;
 
     /**
      * Register function to be bound with action
@@ -55,6 +56,7 @@ var spa_page_transition = (function () {
     initialize = function (initialize_func) {
         spaLogger = spa_log.createLogger(isDebugMode, 'SPA.LOG ');
         spa_page_transition.model.initialize.apply(this, arguments);
+        spa_page_transition.func.setIsUnitTestMode(isUnitTestMode)
         return spa_page_transition;
     };
 
@@ -65,6 +67,11 @@ var spa_page_transition = (function () {
      */
     debugMode = function (is_debug_mode) {
         isDebugMode = is_debug_mode;
+        return spa_page_transition;
+    };
+
+    unitTestMode = function (is_unit_test_mode) {
+        isUnitTestMode = is_unit_test_mode;
         return spa_page_transition;
     };
 
@@ -111,6 +118,7 @@ var spa_page_transition = (function () {
         createFunc: createFunc,
         createAjaxFunc: createAjaxFunc,
         debugMode: debugMode,
+        unitTestMode: unitTestMode,
         initialize: initialize,
         run: run,
         renderPage: renderPage,
@@ -232,7 +240,8 @@ spa_page_transition.func = (function () {
     var
         protoFunc,
         chooseArgByType,
-        createFunc, createAjaxFunc;
+        createFunc, createAjaxFunc,
+        isUnitTestMode, setIsUnitTestMode;
 
     protoFunc = {
         execute: function (anchor_map) {
@@ -243,7 +252,11 @@ spa_page_transition.func = (function () {
             try {
                 this_obj.main_func(this_obj, anchor_map, data);
             } catch (e) {
-                spa_page_transition.getLogger().error(e);
+                if (isUnitTestMode) {
+                    spa_page_transition.getLogger().error('exec_main_func error (omitted by unit test)');
+                } else {
+                    spa_page_transition.getLogger().error(e);
+                }
                 return $.Deferred().reject(e.message ? {'err_mes': e.message} : e);
             }
             if (this_obj.stays) {
@@ -286,7 +299,7 @@ spa_page_transition.func = (function () {
 
     createFunc = function (_main_func) {
         var
-            i, arg_main_func, res;
+            arg_main_func, res;
 
         arg_main_func = chooseArgByType(arguments, 'function');
         if (!arg_main_func) {
@@ -355,9 +368,14 @@ spa_page_transition.func = (function () {
         return res;
     };
 
+    setIsUnitTestMode = function (_is_unit_test_mode) {
+        isUnitTestMode = _is_unit_test_mode;
+    };
+
     return {
         createFunc: createFunc,
         createAjaxFunc: createAjaxFunc,
+        setIsUnitTestMode: setIsUnitTestMode,
     }
 })();
 
@@ -519,7 +537,7 @@ spa_page_transition.shell = (function () {
             renderPage(anchor_map);
         }, function (data) {
             if (data && data.stays) {
-                return;
+                return false;
             } else {
                 renderErrorPage(data);
             }
@@ -657,10 +675,19 @@ spa_page_transition.data_bind = (function () {
 
         _init_bind_prop_map = function (key, data) {
             $('[' + BIND_ATTR_REPLACED_KEY + ']').each(function (idx, el) {
-                var replaced_key = $(el).attr(BIND_ATTR_REPLACED_KEY);
-                if (spa_page_util.startsWith(replaced_key, key + '.')) {
-                    $(el).remove();
+                var
+                    replaced_keys,
+                    replaced_key_str = $(el).attr(BIND_ATTR_REPLACED_KEY);
+
+                if (!replaced_key_str) {
+                    return true;
                 }
+                replaced_keys = replaced_key_str.split(',');
+                $.each(replaced_keys, function (idx, replaced_key) {
+                    if (spa_page_util.startsWith(replaced_key, key + '.')) {
+                        $(el).remove();
+                    }
+                });
             });
             _bind_prop_map = {};
             _clone_target_elements = [];
@@ -716,7 +743,7 @@ spa_page_transition.data_bind = (function () {
          */
         _get_bind_val = function (data, key) {
             var
-                i, val, pure_key,
+                i, val,
                 keys = key.split('\.');
 
             if (keys.length < 2) {
@@ -799,7 +826,9 @@ spa_page_transition.data_bind = (function () {
             } else {
                 $el.attr(attr, val);
             }
-            $el.show();
+            if ($el.attr('clone-target-flag') !== '1') {
+                $el.show();
+            }
         };
 
         _each_attr_type = function (func) {
@@ -875,8 +904,9 @@ spa_page_transition.data_bind = (function () {
         };
 
         _replace_cloned_element_attr = function ($el, loop_prop_key, i) {
-
-            $el.attr(BIND_ATTR_REPLACED_KEY, loop_prop_key);
+            var replaced_key = $el.attr(BIND_ATTR_REPLACED_KEY);
+            replaced_key = replaced_key ? replaced_key + ',' + loop_prop_key : loop_prop_key;
+            $el.attr(BIND_ATTR_REPLACED_KEY, replaced_key);
 
             _each_attr_type(function (bind_attr_type) {
                 var bind_attr = $el.attr(bind_attr_type);
@@ -891,22 +921,21 @@ spa_page_transition.data_bind = (function () {
 
             $el.attr(BIND_ATTR_REPLACED_KEY, loop_prop_key);
 
-            $(all_show_cond_selectors).each(function (idx_any, el_any) {
-                $.each(SHOW_COND_SELECTORS, function (idx_selector, selector) {
-                    var bind_attr = $el.attr(selector);
-                    if (bind_attr) {
-                        if (spa_page_util.contains(bind_attr, loop_prop_key + '$' + i)) {
-                            return true;
-                        }
-                        $el.attr(selector, bind_attr.replace(loop_prop_key, loop_prop_key + '$' + i));
-                        return false;
+            $.each(SHOW_COND_SELECTORS, function (idx_selector, selector) {
+                var bind_attr = $el.attr(selector);
+                if (bind_attr) {
+                    if (spa_page_util.contains(bind_attr, loop_prop_key + '$' + i)) {
+                        return true;
                     }
-                });
+                    $el.attr(selector, bind_attr.replace(loop_prop_key, loop_prop_key + '$' + i));
+                    return false;
+                }
             });
         };
 
         _hide_clone_target_elements = function () {
             $.each(_clone_target_elements, function (idx, el) {
+                $(el).attr('clone-target-flag', '1');
                 $(el).hide();
             });
         };
@@ -974,7 +1003,7 @@ spa_page_transition.data_bind = (function () {
             $(bind_attr_type_selectors).each(function (idx_bind, obj) {
                 var
                     el_prop_key,
-                    $this = $(this);
+                    $this = $(obj);
 
                 _each_attr_type(function (bind_attr, attr) {
                     el_prop_key = $this.attr(bind_attr);
@@ -995,7 +1024,7 @@ spa_page_transition.data_bind = (function () {
                         matched_show_cond;
 
                     if (attr_val) {
-                        matched_show_cond = show_condition.findShowCond(selector).prepare(data, attr_val);
+                        matched_show_cond = show_condition.findShowCond(selector).prepare(data, attr_val, _get_all_prop_map());
                         if (matched_show_cond.is_target(key)) {
                             if (matched_show_cond.visible()) {
                                 $(el).show();
@@ -1024,7 +1053,7 @@ spa_page_transition.data_bind = (function () {
                 set_not: function (_is_not) {
                     this.is_not = _is_not;
                 },
-                prepare: function (data, attr) {
+                prepare: function (data, attr, _all_prop_map) {
                     var
                         entity_props, _entity_prop, entity_prop_cond;
                     this.prepared = true;
@@ -1039,6 +1068,8 @@ spa_page_transition.data_bind = (function () {
                         spa_page_transition.getLogger().warn('###invisible entity_props');
                         return;
                     }
+
+                    this.all_prop_map = _all_prop_map;
                     this.entity = entity_props[0];
                     _entity_prop = '';
                     $.each(entity_props, function (idx, el) {
@@ -1055,10 +1086,7 @@ spa_page_transition.data_bind = (function () {
                     return this;
                 },
                 is_target: function (key) {
-                    if (this.entity && key !== this.entity) {
-                        return false;
-                    }
-                    return true;
+                    return key && key === this.entity;
                 },
                 visible: function () {
                     if (!this.prepared) {
@@ -1097,15 +1125,21 @@ spa_page_transition.data_bind = (function () {
             createShowCondEq = function () {
                 var res = Object.create(showCondProto);
                 res.is_target = function () {
-                    return showCondProto.is_target.apply(this, arguments) && !(!_get_all_prop_map()[this.entity_prop]);
+                    // return showCondProto.is_target.apply(this, arguments) && !(!_get_all_prop_map()[this.entity_prop]);
+                    return showCondProto.is_target.apply(this, arguments) && !(!this.all_prop_map[this.entity_prop]);
                 };
                 res.matches = function () {
+                    // if (!this.val) {
+                    //     return false;
+                    // } else if (this.cond && this.cond !== this.val) {
+                    //     return false;
+                    // } else {
+                    //     return true;
+                    // }
                     if (!this.val) {
                         return false;
-                    } else if (this.cond && this.cond !== this.val) {
-                        return false;
                     } else {
-                        return true;
+                        return this.val && this.cond === this.val;
                     }
                 };
                 return res;
@@ -1157,8 +1191,7 @@ spa_page_transition.data_bind = (function () {
                 }
 
                 key += spa_page_util.contains(selector, '-not') ? '-not' : '';
-                var res = showCondMap[key];
-                return res;
+                return showCondMap[key];
             };
 
             return {
@@ -1253,11 +1286,11 @@ var spa_log = (function () {
         },
         create_log: function (logs) {
             var
-                log, i, is_left, is_right, is_last,
+                log, i, is_right, is_last,
                 result = '';
 
             if (logs.length < 1) {
-                console.error('No arguments...')
+                console.error('No arguments...');
                 return;
             }
 

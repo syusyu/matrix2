@@ -17,13 +17,11 @@ var matrix2 = (function () {
                 observer.trigger('FACTOR',
                     matrix2.model.add_factor(matrix2.shell.get_factor_name(), matrix2.shell.get_factor_options()));
                 observer.trigger('FACTOR_OPTION', matrix2.model.init_input_factor_options());
-                observer.trigger('EXCLUSION', matrix2.model.get_exclude());
             }),
 
             removeFactor = spa_page_transition.createFunc(function (observer, anchor_map) {
                 getLogger().debug('removeFactor is called!', anchor_map);
                 observer.trigger('FACTOR', matrix2.model.remove_factor(anchor_map.id));
-                observer.trigger('EXCLUSION', matrix2.model.get_exclude());
             }),
 
             addFactorOption = spa_page_transition.createFunc(function (observer, anchor_map) {
@@ -57,8 +55,8 @@ var matrix2 = (function () {
             }),
 
             selectExclusionPair = spa_page_transition.createFunc(function (observer, anchor_map) {
-                getLogger().debug('selectExclusionPair is called!', anchor_map);
-                observer.trigger('EXCLUSION', matrix2.model.select_exclusion_pair(anchor_map.val));
+                // getLogger().debug('selectExclusionPair is called!', anchor_map);
+                // observer.trigger('EXCLUSION', matrix2.model.select_exclusion_pair(anchor_map.val));
             }),
 
             initializationFunc = spa_page_transition.createAjaxFunc(PATH_INIT, null, function (observer, anchor_map, data) {
@@ -84,7 +82,7 @@ var matrix2 = (function () {
             .addAction('remove-exclusion', 'main', [removeExclusion])
             .addAction('add-exclusion-pair', 'main', [addExclusionPair])
             .addAction('remove-exclusion-pair', 'main', [removeExclusionPair])
-            .addAction('select-exclusion-pair', 'main', [selectExclusionPair])
+            // .addAction('select-exclusion-pair', 'main', [selectExclusionPair])
             .run();
     };
 
